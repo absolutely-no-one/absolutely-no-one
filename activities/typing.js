@@ -12,6 +12,7 @@ var incorrectTerms = [];
 var countAccents = true;
 var onAnswerScreen = false;
 var termsSuggestReview = [];
+var isRight = false;
 
 var enterClicks = 0;
 
@@ -63,22 +64,30 @@ function generateQuestions() {
                 answerQuestion(this.value.trim());
             } else if (e.key == "Enter" && onAnswerScreen == true) {
 
+                isRight = this.value.trim().toUpperCase() == currentQuestion.term.toUpperCase();
+
+                if (!countAccents) {
+                    isRight = this.value.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") == currentQuestion.term.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                }
+
                 document.getElementById("input").readOnly = false;
                 document.getElementById("input").classList.remove("bg-green-700");
                 document.getElementById("input").classList.remove("bg-french-red");
-        
+
+                if (!isRight) {
+                    incorrectTerms.push(currentQuestion);
+                }
                 onAnswerScreen = false;
                 if (termsWithoutReview != termsBetweenReview) {
                     termsWithoutReview++;
                 }
                 document.getElementById("optionContainer").remove();
                 document.getElementById("input").value = "";
-                askQuestion();
 
+                askQuestion();
                 if (currentQuestion == incorrectTerms[0] && incorrectTerms.length > 0 && termsWithoutReview == termsBetweenReview) {
                     incorrectTerms.shift();
                 }
-                console.log(termsWithoutReview);
             }
         })
 
@@ -87,6 +96,10 @@ function generateQuestions() {
 }
 
 function askQuestion() {
+    if (setData.length == 0) {
+        termsWithoutReview = termsBetweenReview;
+    }
+    
     if (termsWithoutReview != termsBetweenReview && setData.length > 0) {
         currentQuestion = setData.pop();
         document.getElementById("question").innerHTML = currentQuestion.definition;
@@ -119,10 +132,10 @@ function answerQuestion(answer) {
     next.innerHTML = "Next question";
     next.setAttribute("class", "text-white hover:underline decoration-amber my-1 text-xl md:text-2xl");
 
-    var isRight = answer.toUpperCase() == currentQuestion.term.toUpperCase();
+    isRight = answer.toUpperCase() == currentQuestion.term.toUpperCase();
 
     if (!countAccents) {
-        isRight = answer.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") == currentQuestion.term.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        isRight = answer.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") == currentQuestion.term.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
     if (isRight) {
